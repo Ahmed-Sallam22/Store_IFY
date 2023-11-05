@@ -1,31 +1,39 @@
-import userModel from "../../../../DB/model/User.model.js"
-import { generateToken, verifyToken } from "../../../utils/GenerateAndVerifyToken.js"
-import { compare, hash } from "../../../utils/HashAndCompare.js"
-import sendEmail from "../../../utils/email.js"
-import { asyncHandler } from "../../../utils/errorHandling.js"
-import { customAlphabet } from "nanoid"
+import userModel from "../../../../DB/model/User.model.js";
+import {
+  generateToken,
+  verifyToken,
+} from "../../../utils/GenerateAndVerifyToken.js";
+import { compare, hash } from "../../../utils/HashAndCompare.js";
+import sendEmail from "../../../utils/email.js";
+import { asyncHandler } from "../../../utils/errorHandling.js";
+import { customAlphabet } from "nanoid";
 
+export const signup = asyncHandler(async (req, res, next) => {
+  const { userName, email, password, confirmPassword } = req.body;
+  //Check user
+  if (await userModel.findOne({ userName })) {
+    return next(new Error(`!${userName} is Already Token`, { cause: 409 }));
+  }
+  // Check Email Is Exist
 
+  if (await userModel.findOne({ email })) {
+    return next(new Error("Email Exist", { cause: 409 }));
+  }
+  // Confirm Email
+  const token = generateToken({
+    payload: { email },
+    signature: process.env.EMAIL_TOKEN,
+    expiresIn: 60 * 10,
+  });
+  const refreshtoken = generateToken({
+    payload: { email },
+    signature: process.env.EMAIL_TOKEN,
+    expiresIn: 60 * 60 * 24 * 30,
+  });
+  const link = `${req.protocol}://${req.headers.host}/auth/confirmEmail/${token}`;
+  const relink = `${req.protocol}://${req.headers.host}/auth/RequestNewconfirmEmail/${refreshtoken}`;
 
-export const signup= asyncHandler(async(req,res,next)=>{
-    const {userName,email,password,confirmPassword} =req.body
-    //Check user
-    if (await userModel.findOne({userName})) {
-        return next(new Error(`!${userName} is Already Token`,{cause:409}))
-    }
-    // Check Email Is Exist
-    
-    if (await userModel.findOne({email})){
-        return next(new Error('Email Exist',{cause:409}))
-    }
-    // Confirm Email
-       const token = generateToken({payload:{email}, signature:process.env.EMAIL_TOKEN ,expiresIn:60*10})
-       const refreshtoken = generateToken({payload:{email},signature:process.env.EMAIL_TOKEN,expiresIn:60*60*24*30})
-    const link = `${req.protocol}://${req.headers.host}/auth/confirmEmail/${token}`;
-    const relink = `${req.protocol}://${req.headers.host}/auth/RequestNewconfirmEmail/${refreshtoken}`;
-
-    const html=
-    `
+  const html = `
     <html>
 
 <head>
@@ -222,65 +230,65 @@ export const signup= asyncHandler(async(req,res,next)=>{
   </table>
 </body>
 </html>
-    `
-  if(! await sendEmail({to: email,
-    subject: "Confirm Email",
-    html,})){
-        return next(new Error('Email Rejected',{cause:400}))
-    }
+    `;
+  if (!(await sendEmail({ to: email, subject: "Confirm Email", html }))) {
+    return next(new Error("Email Rejected", { cause: 400 }));
+  }
 
-    if(password==confirmPassword){
+  if (password == confirmPassword) {
     // Hash Password
-    const HashPassword=hash({plaintext:password})
+    const HashPassword = hash({ plaintext: password });
     //Creat User
-    const {_id}= await userModel.create({
-        email,userName,password:HashPassword
-    })
-    return res.status(201).json({message:'success',_id})}
-    else {
-        return next(new Error("Password not match confirmPassword"));
-      }
-})
-
-
-export const confirmEmail=asyncHandler(async(req,res,next)=>{
-  const {token}=req.params;
-  const {email}=verifyToken({token, signature:process.env.EMAIL_TOKEN})
-
-  if(!email){
-    return next(new Error('In-Valid Token PayLoad',{cause:404}))
+    const { _id } = await userModel.create({
+      email,
+      userName,
+      password: HashPassword,
+    });
+    return res.status(201).json({ message: "success", _id });
+  } else {
+    return next(new Error("Password not match confirmPassword"));
   }
-  const user =await userModel.updateOne({email},{confirmEmail:true})
-  
+});
 
-  if(user.matchedCount){
-    return res.status(200).redirect(`${process.env.FRONT}login`)
-  }else{
-    return res.status(200).redirect(`${process.env.FRONT}emailsignup`)
+export const confirmEmail = asyncHandler(async (req, res, next) => {
+  const { token } = req.params;
+  const { email } = verifyToken({ token, signature: process.env.EMAIL_TOKEN });
+
+  if (!email) {
+    return next(new Error("In-Valid Token PayLoad", { cause: 404 }));
   }
-})
+  const user = await userModel.updateOne({ email }, { confirmEmail: true });
 
-
-export const RequestNewconfirmEmail=asyncHandler(async(req,res,next)=>{
-  const {token}=req.params;
-  const {email}=verifyToken({token, signature:process.env.EMAIL_TOKEN})
-
-  if(!email){
-    return next(new Error('In-Valid Token PayLoad',{cause:404}))
+  if (user.matchedCount) {
+    return res.status(200).redirect(`${process.env.FRONT}login`);
+  } else {
+    return res.status(200).redirect(`${process.env.FRONT}emailsignup`);
   }
-  const user =await userModel.findOne({email})
-  if(!user){
-    return next(new Error('Not Registers Account',{cause:404}))
-  }
-  if(user.confirmEmail){
-    return res.status(200).redirect(`${process.env.FRONT}login`)
-  }
-         const NewToken = generateToken({payload:{email}, signature:process.env.EMAIL_TOKEN ,expiresIn:60*2})
+});
 
-   const link = `${req.protocol}://${req.headers.host}/auth/confirmEmail/${NewToken}`;
+export const RequestNewconfirmEmail = asyncHandler(async (req, res, next) => {
+  const { token } = req.params;
+  const { email } = verifyToken({ token, signature: process.env.EMAIL_TOKEN });
 
-    const html=
-    `
+  if (!email) {
+    return next(new Error("In-Valid Token PayLoad", { cause: 404 }));
+  }
+  const user = await userModel.findOne({ email });
+  if (!user) {
+    return next(new Error("Not Registers Account", { cause: 404 }));
+  }
+  if (user.confirmEmail) {
+    return res.status(200).redirect(`${process.env.FRONT}login`);
+  }
+  const NewToken = generateToken({
+    payload: { email },
+    signature: process.env.EMAIL_TOKEN,
+    expiresIn: 60 * 2,
+  });
+
+  const link = `${req.protocol}://${req.headers.host}/auth/confirmEmail/${NewToken}`;
+
+  const html = `
     <html>
 
 <head>
@@ -462,47 +470,54 @@ export const RequestNewconfirmEmail=asyncHandler(async(req,res,next)=>{
   </table>
 </body>
 </html>
-    `
-  if(! await sendEmail({to: user.email,
-    subject: "Confirm Email",
-    html,})){
-        return next(new Error('Email Rejected',{cause:400}))
+    `;
+  if (!(await sendEmail({ to: user.email, subject: "Confirm Email", html }))) {
+    return next(new Error("Email Rejected", { cause: 400 }));
+  }
+  return res.status(200).send("<p>Please Check your inbox Gmail</p>");
+});
+
+export const login = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+  const user = await userModel.findOne({ email });
+  if (!user) {
+    return next(new Error("Not Registeres Account", { cause: 404 }));
+  }
+  if (!user.confirmEmail) {
+    return next(new Error("Please Confirm Your Email First", { cause: 400 }));
+  }
+  if (!compare({ plaintext: password, hashValue: user.password })) {
+    return next(new Error("in-Valid Password Or Email", { cause: 404 }));
+  }
+  const access_token = generateToken({
+    payload: { _id: user._id, role: user.role },
+    expiresIn: 60 * 30,
+  });
+  const refreshtoken = generateToken({
+    payload: { _id: user._id, role: user.role },
+    expiresIn: 60 * 60 * 24 * 365,
+  });
+
+  return res
+    .status(201)
+    .json({ message: "Success", access_token, refreshtoken });
+});
+
+export const sendCode = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+  const nanoId = customAlphabet("0123456789", 4);
+  const user = await userModel.findOneAndUpdate(
+    { email },
+    { forgetCode: nanoId() },
+    {
+      new: true,
     }
-      return res.status(200).send('<p>Please Check your inbox Gmail</p>')
-})
-
-export const login =asyncHandler(async(req,res,next)=>{
-  const {email, password}=req.body
-  const user=await userModel.findOne({email})
-    if(!user){
-      return next(new Error("Not Registeres Account",{cause:404}))
-    }
-    if(!user.confirmEmail){
-      return next(new Error("Please Confirm Your Email First",{cause:400}))
-    }
-    if(!compare({plaintext:password,hashValue:user.password})){
-      return next(new Error("in-Valid Password Or Email",{cause:404}))
-    }
-    const access_token=generateToken({payload:{_id:user._id,role:user.role},expiresIn:60*30})
-    const refreshtoken=generateToken({payload:{_id:user._id,role:user.role},expiresIn:60*60*24*365})
-
-    return res.status(201).json({message:"Success",access_token,refreshtoken})
-
-
-})
-
-export const sendCode=asyncHandler(async(req,res,next)=>{
-  const {email}=req.body
-  const nanoId=customAlphabet('0123456789',4)
-  const user =await userModel.findOneAndUpdate({email},{forgetCode:nanoId()},{
-    new:true
-  })
+  );
 
   if (!user.confirmEmail) {
-    return next(new Error("Please Confirm Your Email First",{cause:400}))
+    return next(new Error("Please Confirm Your Email First", { cause: 400 }));
   }
-  const html=
-  `
+  const html = `
   <html>
 
 <head>
@@ -623,7 +638,9 @@ max-width: 560px;" class="container">
     padding-top: 25px; 
     color: #000000;
     font-family: sans-serif;" class="paragraph">
-            Hi <span style= color:#3969d5>${user.userName}</span> ,<br> In order to start using your new account, you need to confirm your email address.
+            Hi <span style= color:#3969d5>${
+              user.userName
+            }</span> ,<br> In order to start using your new account, you need to confirm your email address.
           </td>
         </tr>
         <tr>
@@ -683,22 +700,44 @@ max-width: 560px;" class="wrapper">
 </table>
 </body>
 </html>
-  `
-if(! await sendEmail({to: email,
-  subject: "Reset Password",
-  html,})){
-      return next(new Error('Email Rejected',{cause:400}))
+  `;
+  if (!(await sendEmail({ to: email, subject: "Reset Password", html }))) {
+    return next(new Error("Email Rejected", { cause: 400 }));
   }
 
-  return user ? res.status(200).json({message:"Code Has been Sent To your Gmail"}):next(new Error("Not Registers Account",{cause:404}))
-})
+  return user
+    ? res.status(200).json({ message: "Code Has been Sent To your Gmail" })
+    : next(new Error("Not Registers Account", { cause: 404 }));
+});
 
-export const ForgetPassword=asyncHandler(async(req,res,next)=>{
-  const {email,forgetCode,password}=req.body
-  const nanoId=customAlphabet('0123456789',4)
-  const user =await userModel.findOneAndUpdate({email},{forgetCode:nanoId()},{
-    new:true
-  })
-  return user ? res.status(200).json({message:"Done"}):next(new Error("Not Registers Account",{cause:404}))
-})
+export const CheckCode = asyncHandler(async (req, res, next) => {
+  const { email, forgetCode } = req.body;
+  const user = await userModel.findOne({ email });
+  if (!user) {
+    return next(new Error("Not Registers Account", { cause: 404 }));
+  }
+  if (user.forgetCode != forgetCode) {
+    return next(new Error("in-Valid Code", { cause: 404 }));
+  }
+  return res.status(200).json({ message: "Done" });
+});
 
+export const RestePassword = asyncHandler(async (req, res, next) => {
+  const { email, password, confirmPassword } = req.body;
+  const user = await userModel.findOne({ email });
+  if (!user) {
+    return next(new Error("Not Registers Account", { cause: 404 }));
+  }
+  if (compare({ plaintext: password, hashValue: user.password })) {
+    return next(new Error("Enter Your New Password Please", { cause: 404 }));
+  }
+  if (password == confirmPassword) {
+    user.password = hash({ plaintext: password });
+    await user.save();
+    return res
+      .status(201)
+      .json({ message: "Password has been changed Successfully" });
+  } else {
+    return next(new Error("Password not match confirmPassword"));
+  }
+});
