@@ -244,8 +244,10 @@ export const signup = asyncHandler(async (req, res, next) => {
       userName,
       password: HashPassword,
     });
-    
-    return res.status(201).json({ message: "success",user_id:_id});
+    const user =await userModel.findById(_id).select({ email: 1, userName: 1 })
+
+    return res.status(201).json({ message: "success",data:user})
+    ;
   } else {
     return next(new Error("Password not match confirmPassword"));
   }
@@ -498,10 +500,12 @@ export const login = asyncHandler(async (req, res, next) => {
     payload: { _id: user._id, role: user.role },
     expiresIn: 60 * 60 * 24 * 365,
   });
+  const userData =await userModel.findById(user._id).select({ email: 1, userName: 1 })
+
 
   return res
     .status(201)
-    .json({ message: "Success", access_token, refreshtoken });
+    .json({ message: "Success",data:userData ,access_token, refreshtoken });
 });
 
 export const sendCode = asyncHandler(async (req, res, next) => {
