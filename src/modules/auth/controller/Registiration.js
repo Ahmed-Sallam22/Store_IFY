@@ -239,12 +239,13 @@ export const signup = asyncHandler(async (req, res, next) => {
     // Hash Password
     const HashPassword = hash({ plaintext: password });
     //Creat User
-    const { _id } = await userModel.create({
+    const  {_id} = await userModel.create({
       email,
       userName,
       password: HashPassword,
     });
-    return res.status(201).json({ message: "success", _id });
+    
+    return res.status(201).json({ message: "success",user_id:_id});
   } else {
     return next(new Error("Password not match confirmPassword"));
   }
@@ -716,7 +717,7 @@ export const CheckCode = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next(new Error("Not Registers Account", { cause: 404 }));
   }
-  if (user.forgetCode != forgetCode) {
+  if (user.forgetCode != forgetCode ) {
     return next(new Error("in-Valid Code", { cause: 404 }));
   }
   return res.status(200).json({ message: "Done" });
@@ -733,6 +734,7 @@ export const RestePassword = asyncHandler(async (req, res, next) => {
   }
   if (password == confirmPassword) {
     user.password = hash({ plaintext: password });
+     user.forgetCode=null
     await user.save();
     return res
       .status(201)

@@ -5,7 +5,7 @@ import * as validators from './auth.validation.js'
 const router = Router()
 
 
-router.post('/signup',validation(validators.signup),authController.signup)
+router.post('/signup',validation(validators.signup), authController.signup)
 router.get('/confirmEmail/:token',validation(validators.token), authController.confirmEmail)
 router.get('/RequestNewconfirmEmail/:token',validation(validators.token), authController.RequestNewconfirmEmail)
 router.post('/login',validation(validators.login), authController.login)
