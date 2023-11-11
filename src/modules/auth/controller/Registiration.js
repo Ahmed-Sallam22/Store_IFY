@@ -239,15 +239,18 @@ export const signup = asyncHandler(async (req, res, next) => {
     // Hash Password
     const HashPassword = hash({ plaintext: password });
     //Creat User
-    const  {_id} = await userModel.create({
-      email,
-      userName,
-      password: HashPassword,
-    });
-    const user =await userModel.findById(_id).select({ email: 1, userName: 1 })
+    const { _id } = await userModel
+      .create({
+        email,
+        userName,
+        password: HashPassword,
+      })
+      .select("name");
+    const user = await userModel
+      .findById(_id)
+      .select({ email: 1, userName: 1 });
 
-    return res.status(201).json({ message: "success",data:user})
-    ;
+    return res.status(201).json({ message: "success", data: user });
   } else {
     return next(new Error("Password not match confirmPassword"));
   }
@@ -500,12 +503,13 @@ export const login = asyncHandler(async (req, res, next) => {
     payload: { _id: user._id, role: user.role },
     expiresIn: 60 * 60 * 24 * 365,
   });
-  const userData =await userModel.findById(user._id).select({ email: 1, userName: 1 })
-
+  const userData = await userModel
+    .findById(user._id)
+    .select({ email: 1, userName: 1 });
 
   return res
     .status(201)
-    .json({ message: "Success",data:userData ,access_token, refreshtoken });
+    .json({ message: "Success", data: userData, access_token, refreshtoken });
 });
 
 export const sendCode = asyncHandler(async (req, res, next) => {
@@ -721,7 +725,7 @@ export const CheckCode = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next(new Error("Not Registers Account", { cause: 404 }));
   }
-  if (user.forgetCode != forgetCode ) {
+  if (user.forgetCode != forgetCode) {
     return next(new Error("in-Valid Code", { cause: 404 }));
   }
   return res.status(200).json({ message: "Done" });
@@ -738,7 +742,8 @@ export const RestePassword = asyncHandler(async (req, res, next) => {
   }
   if (password == confirmPassword) {
     user.password = hash({ plaintext: password });
-     user.forgetCode=null
+    user.forgetCode = null;
+    user.ChangepasswordTime = Date.now();
     await user.save();
     return res
       .status(201)

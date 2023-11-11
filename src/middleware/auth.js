@@ -17,7 +17,11 @@ export const auth = () => {
     }
     const user = await userModel
       .findById(decoded.id)
-      .select("userName email role");
+      .select("userName email role ChangepasswordTime");
+
+      if (parseInt(user.ChangepasswordTime?.getTime()/1000)>decoded.iat) {
+        return next(new Error("Expire Token", { cause: 400 }));
+      }
     if (user) {
       return next(new Error("Not register account", { cause: 40 }));
     }
