@@ -515,6 +515,7 @@ export const login = asyncHandler(async (req, res, next) => {
 export const sendCode = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
   const nanoId = customAlphabet("0123456789", 4);
+
   const user = await userModel.findOneAndUpdate(
     { email },
     { forgetCode: nanoId() },
@@ -647,9 +648,7 @@ max-width: 560px;" class="container">
     padding-top: 25px; 
     color: #000000;
     font-family: sans-serif;" class="paragraph">
-            Hi <span style= color:#3969d5>${
-              user.userName
-            }</span> ,<br> In order to start using your new account, you need to confirm your email address.
+            Hi <span style= color:#3969d5>${user.userName}</span> ,<br> In order to start using your new account, you need to confirm your email address.
           </td>
         </tr>
         <tr>
@@ -661,7 +660,7 @@ max-width: 560px;" class="container">
                 <tr>
                   <td align="center" valign="middle" style="padding: 12px 24px; margin: 0; text-decoration: none; border-collapse: collapse; border-spacing: 0; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px;"
                       bgcolor="#3969d5">
-          ${nanoId()}
+          ${user.forgetCode}
         </a>
                   </td>
                 </tr>
