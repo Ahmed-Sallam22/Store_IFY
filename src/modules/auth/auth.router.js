@@ -9,7 +9,7 @@ router.post('/signup',validation(validators.signup), authController.signup)
 router.get('/confirmEmail/:token',validation(validators.token), authController.confirmEmail)
 router.get('/RequestNewconfirmEmail/:token',validation(validators.token), authController.RequestNewconfirmEmail)
 router.post('/login',validation(validators.login), authController.login)
-router.patch('/sendCode',validation(validators.sendCode),authController.sendCode)
+router.patch('/forgetPassword',validation(validators.forgetPassword),authController.forgetPassword)
 router.post('/CheckCode',validation(validators.CheckCode),authController.CheckCode)
 router.patch('/RestePassword',validation(validators.RestePassword),authController.RestePassword)
 

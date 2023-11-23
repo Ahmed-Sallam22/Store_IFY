@@ -512,7 +512,7 @@ export const login = asyncHandler(async (req, res, next) => {
     .json({ message: "Success", data: userData, access_token, refreshtoken });
 });
 
-export const sendCode = asyncHandler(async (req, res, next) => {
+export const forgetPassword = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
   const nanoId = customAlphabet("0123456789", 4);
 

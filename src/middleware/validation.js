@@ -36,13 +36,15 @@ export const validation = (schema) => {
             if (schema[key]) {
                 const validationResult = schema[key].validate(req[key], { abortEarly: false })
                 if (validationResult.error) {
-                    validationErr.push(validationResult.error.details)
+                    validationErr.push(...validationResult.error.details)
                 }
             }
         });
 
         if (validationErr.length) {
-            return next(new Error(`${validationErr}`, { cause: 404 }));
+            const Err=[]
+            Err.push(...validationErr)            
+            return next(new Error(`${Err[0].message}`, { cause: 404 }));
         }
         return next()
     }

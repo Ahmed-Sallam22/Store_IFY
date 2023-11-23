@@ -46,7 +46,7 @@ export const login={
     ) 
 }
 
-export const sendCode={
+export const forgetPassword={
     body:joi.object().required().keys(
         {
             email:generalFields.email.messages({
