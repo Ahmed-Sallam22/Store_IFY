@@ -42,7 +42,7 @@ export const validation = (schema) => {
         });
 
         if (validationErr.length) {
-            return res.json({ message: "Validation Err", validationErr })
+            return next(new Error(`${validationErr}`, { cause: 404 }));
         }
         return next()
     }
