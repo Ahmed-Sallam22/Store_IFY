@@ -66,7 +66,9 @@ export const CheckCode={
             'any.required': `Email is a required field`
           }),   
         forgetCode:joi.string().pattern(new RegExp(/^[0-9]{4}$/)).required().messages({
-            'string.pattern.base': `Password should be include 4 Numbers`,
+            'string.pattern.base': `forgetCode should be include 4 Numbers`,
+            'string.empty': `forgetCode cannot be an empty field`,
+            'any.required': `forgetCode is a required field`
         })
     }
         )}
