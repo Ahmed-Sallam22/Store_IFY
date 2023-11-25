@@ -7,6 +7,8 @@ import { compare, hash } from "../../../utils/HashAndCompare.js";
 import sendEmail from "../../../utils/email.js";
 import { asyncHandler } from "../../../utils/errorHandling.js";
 import { customAlphabet } from "nanoid";
+import {OAuth2Client} from 'google-auth-library';
+
 
 export const signup = asyncHandler(async (req, res, next) => {
   const { userName, email, password, confirmPassword } = req.body;
@@ -244,8 +246,7 @@ export const signup = asyncHandler(async (req, res, next) => {
         email,
         userName,
         password: HashPassword,
-      })
-      .select("name");
+      });
     const user = await userModel
       .findById(_id)
       .select({ email: 1, userName: 1 });
@@ -508,8 +509,79 @@ export const login = asyncHandler(async (req, res, next) => {
     .select({ email: 1, userName: 1 });
 
   return res
-    .status(201)
+    .status(200)
     .json({ message: "Success", data: userData, access_token, refreshtoken });
+});
+export const loginWithGmail = asyncHandler(async (req, res, next) => {
+  const{idToken}=req.body
+const client = new OAuth2Client(process.env.CLIENT_ID);
+async function verify() {
+  const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.CLIENT_ID,  // Specify the CLIENT_ID of the app that accesses the backend
+      // Or, if multiple clients access the backend:
+      //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+  });
+  const payload =ticket.getPayload()
+  return payload
+}
+  const {email ,email_verified,name ,given_name,family_name,picture} = await verify();
+  if (!email_verified) {
+    return next(new Error("In-valid Email",{cause:400}))
+  }
+  const user =await userModel.findOne({email:email.toLowerCase()})
+  if (user) {
+    
+    if(user.provider!='GOOGLE'){
+      return next(new Error("In-valid provider",{cause:400}))
+    }
+    const access_token = generateToken({
+      payload: { _id: user._id, role: user.role },
+      expiresIn: 60 * 30,
+    });
+    const refreshtoken = generateToken({
+      payload: { _id: user._id, role: user.role },
+      expiresIn: 60 * 60 * 24 * 365,
+    });
+    const userData = await userModel
+    .findById(user._id)
+    .select({ email: 1, userName: 1 });
+    
+    return res
+    .status(200)
+    .json({ message: "Success", data: userData, access_token, refreshtoken });
+    
+  }
+
+const customPassword=customAlphabet('0123456789asfdsjkfhkxhvklxbv.,mw[qo[wdacz',10)
+  const HashPassword = hash({ plaintext: customPassword() });
+  //Creat User
+  const { _id ,role} = await userModel
+    .create({
+      firstName:given_name,
+      lastName:family_name,
+      email,
+      image:{secure_url:picture},
+      userName:name,
+      password: HashPassword,
+      confirmEmail:true,
+      provider:'GOOGLE'
+    });
+    const access_token = generateToken({
+      payload: { _id:_id, role:role },
+      expiresIn: 60 * 30,
+    });
+    const refreshtoken = generateToken({
+      payload: { _id:_id, role:role },
+      expiresIn: 60 * 60 * 24 * 365,
+    });
+    
+
+
+
+return res.status(201).json({message:"Done",access_token,refreshtoken})
+
+
 });
 
 export const forgetPassword = asyncHandler(async (req, res, next) => {

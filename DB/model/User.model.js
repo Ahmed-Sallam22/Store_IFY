@@ -2,6 +2,8 @@ import mongoose, { Schema, model } from "mongoose";
 
 const userSchema = new Schema(
   {
+    firstName: String,
+    lastName: String,
     userName: {
       type: String,
       required: [true, "userName is required"],
@@ -23,6 +25,7 @@ const userSchema = new Schema(
       default: "User",
       enum: ["User", "Admin"],
     },
+    image: Object,
     confirmEmail: {
       type: Boolean,
       default: false,
@@ -33,6 +36,11 @@ const userSchema = new Schema(
     },
     ChangepasswordTime: {
       type: Date,
+    },
+    provider: {
+      type: String,
+      default: "system",
+      enum: ["system", "GOOGLE"],
     },
   },
   {
