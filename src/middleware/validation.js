@@ -1,6 +1,6 @@
 import joi from 'joi'
 import { Types } from 'mongoose'
-const dataMethods = ["body", 'params', 'query', 'headers', 'file']
+// const dataMethods = ["body", 'params', 'query', 'headers', 'file']
 
 const validateObjectId = (value, helper) => {
    
@@ -30,22 +30,17 @@ export const generalFields = {
 }
 
 export const validation = (schema) => {
-    return (req, res, next) => {
-        const validationErr = []
-        dataMethods.forEach(key => {
-            if (schema[key]) {
-                const validationResult = schema[key].validate(req[key], { abortEarly: false })
-                if (validationResult.error) {
-                    validationErr.push(...validationResult.error.details)
-                }
-            }
-        });
-
-        if (validationErr.length) {
-            const Err=[]
-            Err.push(...validationErr)            
-            return next(new Error(`${Err[0].message}`, { cause: 404 }));
-        }
-        return next()
+    return (req,res,next)=>{
+    const inputsData={ ...req.body , ...req.query, ...req.params}
+    if (req.file || req.files) {
+        inputsData.file=req.file   || req.files      
     }
-}
+                const validationResult = schema.validate(inputsData, { abortEarly: false })
+                if (validationResult.error) {
+                    return res.status(400).json({message:`${validationResult.error?.details[0].message}`})
+                }
+                return next()
+            }
+        }
+
+    
