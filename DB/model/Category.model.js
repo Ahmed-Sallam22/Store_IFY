@@ -10,7 +10,16 @@ const categorySchema = new Schema({
     image: { type: Object },
     createdBy: { type: Types.ObjectId, ref: 'User', required: false },
 }, {
+    toJSON:{virtuals:true},
+    toObject:{virtuals:true},
     timestamps: true
+})
+
+
+categorySchema.virtual('subcategory',{
+    localField:'_id',
+    foreignField:'categoryId',
+    ref:'SubCategory'
 })
 
 const categoryModel =mongoose.models.Category || model('Category', categorySchema)

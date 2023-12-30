@@ -18,7 +18,7 @@ export const createCategory = asyncHandler(async (req, res, next) => {
     description,
     image: { secure_url, public_id },
   });
-  res.status(201).json({ message: "Done", category });
+  res.status(201).json({Status:true ,cause:201, message: "Success", category });
 });
 export const updateCategory = asyncHandler(async (req, res, next) => {
   const category = await categoryModel.findById(req.params.categoryId);
@@ -56,10 +56,22 @@ export const updateCategory = asyncHandler(async (req, res, next) => {
     category.image = { secure_url, public_id };
   }
   await category.save();
-  res.status(201).json({ message: "Done", category });
+  res.status(201).json({Status:true ,cause:201, message: "Success", category });
 });
 
 export const getCategory = asyncHandler(async (req, res, next) => {
-  const category = await categoryModel.find();
-  res.status(200).json({ message: "Done", category });
+  const category = await categoryModel.find()
+  res.status(200).json({Status:true ,cause:200, message: "Success", category });
+});
+export const getCategorybyId = asyncHandler(async (req, res, next) => {
+  const {categoryId}=req.params
+  const category = await categoryModel.findById(categoryId).populate([
+    {
+      path:'subcategory'
+    }
+  ]);
+  if (!category) {
+    return next(new Error(`!in-valid Category Id`, { cause: 400 }));
+  }
+  res.status(200).json({Status:true ,cause:200, message: "Success", category });
 });

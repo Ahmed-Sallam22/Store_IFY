@@ -251,7 +251,7 @@ export const signup = asyncHandler(async (req, res, next) => {
       .findById(_id)
       .select({ email: 1, userName: 1 });
 
-    return res.status(201).json({ message: "success", data: user });
+    return res.status(201).json({Status:true ,cause:201, message: "Success", data: user });
   } else {
     return next(new Error("Password not match confirmPassword"));
   }
@@ -510,7 +510,7 @@ export const login = asyncHandler(async (req, res, next) => {
 
   return res
     .status(200)
-    .json({ message: "Success", data: userData, access_token, refreshtoken });
+    .json({Status:true ,cause:201, message: "Success", data: userData, access_token, refreshtoken });
 });
 export const loginWithGmail = asyncHandler(async (req, res, next) => {
   const{idToken}=req.body
@@ -549,7 +549,7 @@ async function verify() {
     
     return res
     .status(200)
-    .json({ message: "Success", data: userData, access_token, refreshtoken });
+    .json({ Status:true ,cause:201, message: "Success", data: userData, access_token, refreshtoken });
     
   }
 
@@ -579,7 +579,7 @@ const customPassword=customAlphabet('0123456789asfdsjkfhkxhvklxbv.,mw[qo[wdacz',
 
 
 
-return res.status(201).json({message:"Done",access_token,refreshtoken})
+return res.status(201).json({Status:true ,cause:201, message: "Success",access_token,refreshtoken})
 
 
 });
@@ -786,7 +786,7 @@ max-width: 560px;" class="wrapper">
   }
 
   return user
-    ? res.status(200).json({ message: "Code Has been Sent To your Gmail" })
+    ? res.status(200).json({Status:true ,cause:200, message: "Code Has been Sent To your Gmail" })
     : next(new Error("Not Registers Account", { cause: 404 }));
 });
 
@@ -799,7 +799,7 @@ export const CheckCode = asyncHandler(async (req, res, next) => {
   if (user.forgetCode != forgetCode) {
     return next(new Error("in-Valid Code", { cause: 404 }));
   }
-  return res.status(200).json({ message: "Done" });
+  return res.status(200).json({Status:true ,cause:200, message: "Success" });
 });
 
 export const RestePassword = asyncHandler(async (req, res, next) => {
@@ -818,7 +818,7 @@ export const RestePassword = asyncHandler(async (req, res, next) => {
     await user.save();
     return res
       .status(201)
-      .json({ message: "Password has been changed Successfully" });
+      .json({Status:true ,cause:201, message: "Password has been changed Successfully" });
   } else {
     return next(new Error("Password not match confirmPassword"));
   }
