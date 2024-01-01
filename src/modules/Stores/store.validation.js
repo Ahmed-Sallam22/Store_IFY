@@ -1,15 +1,12 @@
 import joi from 'joi'
 import { generalFields } from '../../middleware/validation.js'
 
-export const creatCategory=joi.object({
+export const createStore=joi.object({
     name:joi.string().required().messages({
         'string.base': `name should be a type of 'text'`,
         'string.empty': `name cannot be an empty field`,
         'any.required': `name is a required field`}),
-    description:joi.string().min(2).required().messages({
-        'string.empty': `description cannot be an empty field`,
-        'string.min': `description should have a minimum length of {#limit}`,
-        'any.required': `description is a required field`}),
+    rate:joi.number().integer().positive().min(0).max(5).required(),
     file:generalFields.file.required(),
     type:joi.string().required().messages({
         'string.base': `type should be a type of 'text'`,
@@ -17,10 +14,10 @@ export const creatCategory=joi.object({
         'any.required': `type is a required field`})
 }).required()
 
-export const updateCategory=joi.object({
-    categoryId:generalFields.id,
+export const updateStore=joi.object({
+    StoreId:generalFields.id,
+    rate:joi.number().integer().positive().min(0).max(5),
     name:joi.string(),
-    description:joi.string().min(2),
     file:generalFields.file,
     type:joi.string()
 }).required()

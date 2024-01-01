@@ -9,6 +9,10 @@ const categorySchema = new Schema({
     slug: { type: String, required: true },
     image: { type: Object },
     createdBy: { type: Types.ObjectId, ref: 'User', required: false },
+    type:{
+        type: String,
+        enum: ["Food","Clothes","Cosmetics","Detergents"],
+    }
 }, {
     toJSON:{virtuals:true},
     toObject:{virtuals:true},

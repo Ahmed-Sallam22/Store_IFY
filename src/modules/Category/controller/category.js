@@ -47,6 +47,14 @@ export const updateCategory = asyncHandler(async (req, res, next) => {
     }
     category.description = req.body.description;
   }
+  if (req.body.type){
+    if (category.type == req.body.type) {
+      return next(
+        new Error(`!Sorry Can’t update with same type`, { cause: 409 })
+      );
+    }
+    category.type = req.body.type;
+  }
   if (req.file) {
     const { secure_url, public_id } = await cloudinary.uploader.upload(
       req.file.path,
@@ -63,6 +71,13 @@ export const getCategory = asyncHandler(async (req, res, next) => {
   const category = await categoryModel.find()
   res.status(200).json({Status:true ,cause:200, message: "Success", category });
 });
+
+export const getCategoryByType = asyncHandler(async (req, res, next) => {
+  const {type}=req.params
+  const category = await categoryModel.find(req.params)
+  res.status(200).json({Status:true ,cause:200, message: "Success", category });
+});
+
 export const getCategorybyId = asyncHandler(async (req, res, next) => {
   const {categoryId}=req.params
   const category = await categoryModel.findById(categoryId).populate([

@@ -20,7 +20,6 @@ export const createSubCategory = asyncHandler(async (req, res, next) => {
   res.status(201).json({Status:true ,cause:201 , message: "Success",subcategory});
 });
 
-
 export const updateSubCategory = asyncHandler(async (req, res, next) => {
   const {categoryId,SubcategoryId}=req.params
 
@@ -48,7 +47,6 @@ export const updateSubCategory = asyncHandler(async (req, res, next) => {
   await subcategory.save();
   res.status(201).json({ Status:true ,cause:201, message: "Success", subcategory });
 });
-
 
 export const getSubCategory = asyncHandler(async (req, res, next) => {
   const Subcategory = await SubcategoryModel.find().populate([

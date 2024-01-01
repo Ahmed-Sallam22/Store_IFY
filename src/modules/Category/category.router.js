@@ -23,6 +23,10 @@ categoryController.updateCategory)
 
 router.get('',
 categoryController.getCategory)
+
+router.get('/:type',
+categoryController.getCategoryByType)
+
 router.get('/:categoryId',
 categoryController.getCategorybyId)
 
