@@ -5,12 +5,14 @@ import SubcategoryRouter from './modules/SubCategory/Subcategory.router.js'
 import couponRouter from './modules/Coupon/coupon.router.js'
 import StoreRouter from './modules/Stores/store.router.js'
 import BranchRouter from './modules/Branch/Branch.router.js'
+import userRouter from './modules/user/user.router.js'
 import { globalErrorHandling } from './utils/errorHandling.js'
 import cors from 'cors' 
 
 const initApp = (app, express) => {
     app.use(express.json({}))
     app.use(`/auth`, authRouter)
+    app.use(`/user`, userRouter)
     app.use(`/category`, categoryRouter)
     app.use(`/subcategory`, SubcategoryRouter)
     app.use(`/coupon`, couponRouter)
